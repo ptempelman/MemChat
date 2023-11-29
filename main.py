@@ -16,15 +16,19 @@ def print_bot(text):
 def load_validate_api_key():
     api_key_filename = "openai_api_key.txt"
 
+    # If a valid API key has never been entered before, we create an empty file
     if not osp.exists(api_key_filename):
         with open(api_key_filename, "w") as file:
             file.write("")
 
     with open(api_key_filename, "r") as file:
         api_key = file.read()
+        # If the API key file is empty, we prompt the user to give theirs
         if not api_key:
             print("WARNING:  No OpenAI key was loaded, please provide yours:")
             api_key = input()
+
+        # After a key has been provided, we validate the key by prompting an LLM with it
         try:
             chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
             introduction = chat_model.predict(
@@ -36,6 +40,7 @@ def load_validate_api_key():
             print("ERROR:  API Key is invalid")
             sys.exit()
 
+    # If a valid API key was provided, we save it locally
     with open(api_key_filename, "w") as file:
         file.write(api_key)
 
@@ -44,11 +49,12 @@ def load_validate_api_key():
 
 if __name__ == "__main__":
     API_KEY = load_validate_api_key()
-    chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY)
-    conversation_buf = ConversationChain(
-        llm=chat_model, memory=ConversationBufferMemory()
+
+    conversation = ConversationChain(
+        llm=ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY),
+        memory=ConversationBufferMemory(),
     )
 
     while True:
         user_input = input()
-        print_bot(conversation_buf.predict(input=user_input))
+        print_bot(conversation.predict(input=user_input))
