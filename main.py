@@ -12,17 +12,17 @@ def print_bot(text):
     print(f"\033[92m{text}\033[0m")
 
 
-if __name__ == "__main__":
+def load_validate_api_key():
     with open("openai_api_key.txt", "r") as file:
-        API_KEY = file.read()
-        if not API_KEY:
+        api_key = file.read()
+        if not api_key:
             print(
                 "ERROR:  No OpenAI key was provided, please add yours to openai_api_key.txt"
             )
             sys.exit()
         else:
             try:
-                chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY)
+                chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
                 introduction = chat_model.predict(
                     "Very briefly introduce yourself as RillaBot, the personal AI-powered sales assistant"
                 )
@@ -31,10 +31,13 @@ if __name__ == "__main__":
             except openai.AuthenticationError:
                 print("ERROR:  API Key is invalid")
                 sys.exit()
+    return api_key
 
+
+if __name__ == "__main__":
+    API_KEY = load_validate_api_key()
+    chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY)
+    
     while True:
-        chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY)
-
         user_input = input()
-
         print_bot(chat_model.predict(user_input))
