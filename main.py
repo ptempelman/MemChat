@@ -1,4 +1,5 @@
 import sys
+import os.path as osp
 
 import openai
 from openai import OpenAI
@@ -13,31 +14,38 @@ def print_bot(text):
 
 
 def load_validate_api_key():
-    with open("openai_api_key.txt", "r") as file:
+    api_key_filename = "openai_api_key.txt"
+
+    if not osp.exists(api_key_filename):
+        with open(api_key_filename, "w") as file:
+            file.write("")
+
+    with open(api_key_filename, "r") as file:
         api_key = file.read()
         if not api_key:
-            print(
-                "ERROR:  No OpenAI key was provided, please add yours to openai_api_key.txt"
+            print("WARNING:  No OpenAI key was loaded, please provide yours:")
+            api_key = input()
+        try:
+            chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
+            introduction = chat_model.predict(
+                "Very briefly introduce yourself as RillaBot, the personal AI-powered sales assistant"
             )
-            sys.exit()
-        else:
-            try:
-                chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
-                introduction = chat_model.predict(
-                    "Very briefly introduce yourself as RillaBot, the personal AI-powered sales assistant"
-                )
-                print_bot(introduction)
+            print_bot(introduction)
 
-            except openai.AuthenticationError:
-                print("ERROR:  API Key is invalid")
-                sys.exit()
+        except openai.AuthenticationError:
+            print("ERROR:  API Key is invalid")
+            sys.exit()
+
+    with open(api_key_filename, "w") as file:
+        file.write(api_key)
+
     return api_key
 
 
 if __name__ == "__main__":
     API_KEY = load_validate_api_key()
     chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY)
-    
+
     while True:
         user_input = input()
         print_bot(chat_model.predict(user_input))
