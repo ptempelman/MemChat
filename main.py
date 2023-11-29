@@ -67,13 +67,15 @@ if __name__ == "__main__":
 
     while True:
         user_input = input()
-        if user_input.strip() == "x" or user_input.strip() == "X":
+        
+        # We check if the user is giving a command, instead of chatting with the bot
+        if user_input.strip() == "x" or user_input.strip() == "X":  # Exit chat
             break
-        elif user_input.strip() == "w" or user_input.strip() == "W":
+        elif user_input.strip() == "w" or user_input.strip() == "W":  # Wipe memory
             conversation_memory.clear()
             print_bot("Done, I forgot our previous chat. Ask me anything!")
             continue
-        elif user_input.strip() == "t" or user_input.strip() == "T":
+        elif user_input.strip() == "t" or user_input.strip() == "T":  # Request spending
             print_bot(f"In this session you have currently spent {tokens_spent} tokens which is ${money_spent:.04f}")
             continue
 
