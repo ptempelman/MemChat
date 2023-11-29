@@ -4,8 +4,8 @@ import os.path as osp
 import openai
 from openai import OpenAI
 
-from langchain.chains import LLMChain, SimpleSequentialChain
-from langchain.prompts import PromptTemplate
+from langchain.chains import ConversationChain
+from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chat_models import ChatOpenAI
 
 
@@ -45,7 +45,10 @@ def load_validate_api_key():
 if __name__ == "__main__":
     API_KEY = load_validate_api_key()
     chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY)
+    conversation_buf = ConversationChain(
+        llm=chat_model, memory=ConversationBufferMemory()
+    )
 
     while True:
         user_input = input()
-        print_bot(chat_model.predict(user_input))
+        print_bot(conversation_buf.predict(input=user_input))
