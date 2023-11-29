@@ -2,15 +2,21 @@ import sys
 import os.path as osp
 
 import openai
-from openai import OpenAI
 
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chat_models import ChatOpenAI
+from langchain.callbacks import get_openai_callback
 
 
 def print_bot(text):
     print(f"\033[92m{text}\033[0m")
+
+
+def print_instructions():
+    print_bot(
+        "Press [X] to quit our chat \nPress [W] to wipe my memory \nPress [T] to see total tokens spent \nOr just ask me anything!"
+    )
 
 
 def load_validate_api_key():
@@ -35,6 +41,7 @@ def load_validate_api_key():
                 "Very briefly introduce yourself as RillaBot, the personal AI-powered sales assistant"
             )
             print_bot(introduction)
+            print_instructions()
 
         except openai.AuthenticationError:
             print("ERROR:  API Key is invalid")
@@ -50,11 +57,27 @@ def load_validate_api_key():
 if __name__ == "__main__":
     API_KEY = load_validate_api_key()
 
+    conversation_memory = ConversationBufferMemory()
     conversation = ConversationChain(
         llm=ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY),
-        memory=ConversationBufferMemory(),
+        memory=conversation_memory,
     )
+    tokens_spent = 0
+    money_spent = 0
 
     while True:
         user_input = input()
-        print_bot(conversation.predict(input=user_input))
+        if user_input.strip() == "x" or user_input.strip() == "X":
+            break
+        elif user_input.strip() == "w" or user_input.strip() == "W":
+            conversation_memory.clear()
+            print_bot("Done, I forgot our previous chat. Ask me anything!")
+            continue
+        elif user_input.strip() == "t" or user_input.strip() == "T":
+            print_bot(f"In this session you have currently spent {tokens_spent} tokens which is ${money_spent:.04f}")
+            continue
+
+        with get_openai_callback() as cb:
+            print_bot(conversation.predict(input=user_input))
+            tokens_spent += cb.total_tokens
+            money_spent += cb.total_cost
