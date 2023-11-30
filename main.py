@@ -47,7 +47,10 @@ def load_api_key(api_key_filename: str) -> str:
         api_key: str = file.read()
         # If the API key file is empty, we prompt the user to give theirs
         if not api_key:
-            print("To start the chat, please provide your OpenAI API key:")
+            print(
+                "To start the chat, please provide your OpenAI API key"
+                + " (https://platform.openai.com/api-keys):"
+            )
             api_key = input()
         return api_key
 
