@@ -10,17 +10,30 @@ from langchain.callbacks import get_openai_callback
 
 
 def print_bot(text):
+    """Prints given text in a lime green colour.
+
+    Args:
+        text (str): text to be printed in bot format
+    """
     print(f"\033[92m{text}\033[0m")
 
 
 def print_instructions():
+    """Prints the session management instructions."""
     print_bot(
         "Press [X] to quit our chat \nPress [W] to wipe my memory \nPress [T] to see total tokens spent \nOr just ask me anything!"
     )
 
 
 def load_api_key(api_key_filename):
-    # If a valid API key has never been entered before, we create a placeholder file
+    """Attempts to load a locally saved API key, if it does not exist we prompt the user to give one.
+
+    Args:
+        api_key_filename (str): indicates the file where the API key would be saved locally
+
+    Returns:
+        str: OpenAI API key
+    """
     if not osp.exists(api_key_filename):
         with open(api_key_filename, "w") as file:
             file.write("")
@@ -29,20 +42,26 @@ def load_api_key(api_key_filename):
         api_key = file.read()
         # If the API key file is empty, we prompt the user to give theirs
         if not api_key:
-            print("Please provide your OpenAI API key:")
+            print("Welcome! To start the chat, please provide your OpenAI API key:")
             api_key = input()
         return api_key
 
 
 def validate_api_key(api_key):
-    # After a key has been provided, we validate the key by using it to prompt an LLM
+    """Validates a key by using it to prompt an LLM.
+
+    Args:
+        api_key (str): OpenAI API key
+
+    Returns:
+        bool: returns true if the key is valid
+    """
     try:
         chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
         introduction = chat_model.predict(
             "Very briefly introduce yourself as RillaBot, the personal AI-powered sales assistant"
         )
         print_bot(introduction)
-        print_instructions()
         return True
 
     except openai.AuthenticationError:
@@ -52,14 +71,20 @@ def validate_api_key(api_key):
 
 
 def retrieve_api_key():
+    """Retrieves an API key from a local file or by prompting the user, keeps trying until a valid key is provided.
+
+    Returns:
+        str: OpenAI API key
+    """
     api_key_filename = "openai_api_key.txt"
 
     api_key = load_api_key(api_key_filename)
 
     if validate_api_key(api_key):
-        # If a valid API key was provided, we save it locally
+        # If a valid API key was provided, we save it locally and provide instructions
         with open(api_key_filename, "w") as file:
             file.write(api_key)
+        print_instructions()
     else:
         # If no valid API key was provided, we try again
         return retrieve_api_key()
@@ -68,6 +93,14 @@ def retrieve_api_key():
 
 
 def handle_command(command, conversation_memory, tokens_spent, money_spent):
+    """Handles a user session management command.
+
+    Args:
+        command (str): user input that controls session management
+        conversation_memory (ConversationBufferMemory): the conversation memory to be wiped
+        tokens_spent (float): the tokens spent in this session
+        money_spent (float): the money spent in this session
+    """
     if command == "x":  # Exit chat
         sys.exit()
     elif command == "w":  # Wipe memory
