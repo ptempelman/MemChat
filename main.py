@@ -9,7 +9,7 @@ from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chat_models import ChatOpenAI
 
 
-def print_bot(text):
+def print_bot(text: str) -> None:
     """Prints given text in a lime green colour.
 
     Args:
@@ -18,7 +18,7 @@ def print_bot(text):
     print(f"\033[92m{text}\033[0m")
 
 
-def print_instructions():
+def print_instructions() -> None:
     """Prints the session management instructions."""
     print_bot(
         "Press [X] to quit our chat \n"
@@ -28,7 +28,7 @@ def print_instructions():
     )
 
 
-def load_api_key(api_key_filename):
+def load_api_key(api_key_filename: str) -> str:
     """
     Attempts to load a locally saved API key, if it
     does not exist we prompt the user to give one.
@@ -44,7 +44,7 @@ def load_api_key(api_key_filename):
             file.write("")
 
     with open(api_key_filename, "r", encoding="utf-8") as file:
-        api_key = file.read()
+        api_key: str = file.read()
         # If the API key file is empty, we prompt the user to give theirs
         if not api_key:
             print("To start the chat, please provide your OpenAI API key:")
@@ -52,7 +52,7 @@ def load_api_key(api_key_filename):
         return api_key
 
 
-def validate_api_key(api_key):
+def validate_api_key(api_key: str) -> bool:
     """Validates a key by using it to prompt an LLM.
 
     Args:
@@ -62,20 +62,20 @@ def validate_api_key(api_key):
         bool: returns true if the key is valid
     """
     try:
-        chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
-        introduction = chat_model.predict(
+        chat_model: ChatOpenAI = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key)
+        introduction: str = chat_model.predict(
             "Very briefly introduce yourself as RillaBot, the personal AI-powered sales assistant"
         )
         print_bot(introduction)
         return True
 
     except openai.AuthenticationError:
-        error_message = "ERROR:  API Key is invalid"
+        error_message: str = "ERROR:  API Key is invalid"
         print(f"\033[91m{error_message}\033[0m")
         return False
 
 
-def retrieve_api_key():
+def retrieve_api_key() -> str:
     """
     Retrieves an API key from a local file or by prompting the user,
     keeps trying until a valid key is provided.
@@ -83,9 +83,9 @@ def retrieve_api_key():
     Returns:
         str: OpenAI API key
     """
-    api_key_filename = "openai_api_key.txt"
+    api_key_filename: str = "openai_api_key.txt"
 
-    api_key = load_api_key(api_key_filename)
+    api_key: str = load_api_key(api_key_filename)
 
     if validate_api_key(api_key):
         # If a valid API key was provided, we save it locally and provide instructions
@@ -99,7 +99,12 @@ def retrieve_api_key():
     return api_key
 
 
-def handle_command(command, chat_memory, total_tokens_spent, total_money_spent):
+def handle_command(
+    command: str,
+    chat_memory: ConversationBufferMemory,
+    total_tokens_spent: float,
+    total_money_spent: float,
+) -> None:
     """Handles a user session management command.
 
     Args:
@@ -121,20 +126,20 @@ def handle_command(command, chat_memory, total_tokens_spent, total_money_spent):
 
 
 if __name__ == "__main__":
-    API_KEY = retrieve_api_key()
+    API_KEY: str = retrieve_api_key()
 
-    conversation_memory = ConversationBufferMemory()
-    conversation = ConversationChain(
+    conversation_memory: ConversationBufferMemory = ConversationBufferMemory()
+    conversation: ConversationChain = ConversationChain(
         llm=ChatOpenAI(model_name="gpt-3.5-turbo", api_key=API_KEY),
         memory=conversation_memory,
     )
 
-    tokens_spent = 0
-    money_spent = 0
+    tokens_spent: float = 0
+    money_spent: float = 0
     while True:
-        user_input = input()
+        user_input: str = input()
 
-        user_command = user_input.strip().lower()
+        user_command: str = user_input.strip().lower()
         if len(user_command) == 1 and user_command in ["x", "w", "t"]:
             # If the user is giving a command, we handle that command
             handle_command(user_command, conversation_memory, tokens_spent, money_spent)
