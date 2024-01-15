@@ -1,4 +1,4 @@
-# RillaChat
+# ChatAPI
 An AI powered chatbot with memory that runs in the terminal. 
 
 
